@@ -1,0 +1,31 @@
+services:
+  # Background agent loop — reads chain, scores, rebalances automatically
+  ai-agent:
+    build: ./agent
+    container_name: ai-vault-agent
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./out:/out:ro
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # REST API — OpenClaw and other tools connect here
+  ai-api:
+    build: ./agent
+    container_name: ai-vault-api
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "8042:8042"
+    volumes:
+      - ./out:/out:ro
+    command: ["python", "api.py"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8042/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

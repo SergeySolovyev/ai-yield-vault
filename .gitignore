@@ -1,0 +1,44 @@
+# Foundry
+cache/
+out/
+broadcast/
+
+# Environment
+.env
+
+# Dependencies
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+agent/.venv/
+agent/agent.log
+
+# LaTeX build artifacts
+docs/*.aux
+docs/*.log
+docs/*.out
+docs/*.toc
+docs/*.bbl
+docs/*.blg
+docs/*.fls
+docs/*.fdb_latexmk
+docs/*.synctex.gz
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+.claude/
+
+# Test caches
+.pytest_cache/
+
+# Misc build
+foundry.lock
