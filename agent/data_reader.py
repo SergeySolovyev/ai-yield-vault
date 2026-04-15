@@ -11,7 +11,7 @@ from web3 import Web3
 
 import config
 
-# ── Minimal ABIs (only the functions we need) ────────────────────────
+# Minimal ABIs (only the functions we need)
 
 AAVE_POOL_ABI = [
     {
@@ -76,7 +76,7 @@ COMET_ABI = [
     },
 ]
 
-# ── Constants ────────────────────────────────────────────────────────
+# Constants
 
 RAY = 10**27
 SECONDS_PER_YEAR = 365.25 * 24 * 3600
@@ -124,7 +124,7 @@ class DataReader:
         # currentLiquidityRate is in RAY (1e27)
         liquidity_rate_ray = reserve_data[2]  # currentLiquidityRate
 
-        # Normalize: RAY → 1e18 annual (Aave rates are already annual)
+        # Normalize: RAY -> 1e18 annual (Aave rates are already annual)
         rate_1e18 = liquidity_rate_ray * SCALE_18 // RAY
         apy = rate_1e18 / SCALE_18
 

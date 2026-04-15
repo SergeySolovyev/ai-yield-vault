@@ -26,7 +26,7 @@ from data_reader import DataReader
 from scoring import evaluate
 from signer import sign_rebalance_params
 
-# ── Logging ──────────────────────────────────────────────────────────
+# Logging
 
 logging.basicConfig(
     level=logging.INFO,
@@ -38,9 +38,9 @@ logging.basicConfig(
 )
 log = logging.getLogger("ai-vault-agent")
 
-# ── EMA State ────────────────────────────────────────────────────────
+# EMA State
 
-_smoothed_rates: dict[int, float] = {}  # adapter_index → smoothed APY
+_smoothed_rates: dict[int, float] = {}  # adapter_index -> smoothed APY
 
 
 def ema_smooth(current: float, previous: float | None, alpha: float) -> float:
@@ -50,12 +50,12 @@ def ema_smooth(current: float, previous: float | None, alpha: float) -> float:
     return alpha * current + (1.0 - alpha) * previous
 
 
-# ── Main Agent Logic ─────────────────────────────────────────────────
+# Main Agent Logic
 
 
 def run_check(w3: Web3, reader: DataReader, dry_run: bool = False) -> bool:
     """
-    Execute one cycle of the agent: read → score → decide → act.
+    Execute one cycle of the agent: read -> score -> decide -> act.
 
     Returns True if a rebalance was submitted.
     """
@@ -135,7 +135,7 @@ def run_check(w3: Web3, reader: DataReader, dry_run: bool = False) -> bool:
         return False
 
     # 6. Sign and submit
-    log.info(f"Signing rebalance → adapter {decision.target_index}")
+    log.info(f"Signing rebalance -> adapter {decision.target_index}")
     signed = sign_rebalance_params(
         target_adapter_index=decision.target_index,
         max_loss_bps=config.MAX_LOSS_BPS,
@@ -177,7 +177,7 @@ def run_check(w3: Web3, reader: DataReader, dry_run: bool = False) -> bool:
         return False
 
 
-# ── Entry Point ──────────────────────────────────────────────────────
+# Entry Point
 
 
 def main():

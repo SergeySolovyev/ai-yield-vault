@@ -48,14 +48,14 @@ April 2026
 
 ```
 APY (%)
-  8 │        ╱╲        Compound
-    │       ╱  ╲      ╱
-  6 │──────╱────╲────╱──── Optimal = follow the leader
-    │     ╱      ╲  ╱
-  4 │────╱────────╲╱─────  But: gas costs, timing, risk...
-    │   ╱    Aave  ╲
-  2 │──╱────────────╲────
-    └──────────────────── Time
+  8 |        /\        Compound
+    |       /  \      /
+  6 |------/----\----/---- Optimal = follow the leader
+    |     /      \  /
+  4 |----/--------\/-----  But: gas costs, timing, risk...
+    |   /    Aave  \
+  2 |--/------------\----
+    +-------------------- Time
 ```
 
 **Why manual optimization fails:**
@@ -71,7 +71,7 @@ APY (%)
 | Protocol | Decision Logic | Verifiable? | Multi-Factor? |
 |----------|---------------|-------------|---------------|
 | **Yearn V3** | Strategist-coded, on-chain | Yes | No |
-| **Beefy** | Harvest → compound loop | Yes | No |
+| **Beefy** | Harvest -> compound loop | Yes | No |
 | **Idle Finance** | Best-APY-wins threshold | Yes | No |
 | **Almanak** | ML models (closed source) | **No** | Yes |
 
@@ -85,26 +85,26 @@ APY (%)
 # 3. Architecture Overview
 
 ```
-┌──────────────────────────┐
-│   OpenClaw Chat Interface │  "What's the APY?"
-└────────────┬─────────────┘
-             │ REST API
-┌────────────┴─────────────┐
-│   Python AI Agent         │  Off-chain
-│   • Read on-chain data    │
-│   • EMA rate smoothing    │
-│   • MCDM scoring (4 factors) │
-│   • EIP-712 sign decision │
-└────────────┬─────────────┘
-             │ Signed tx
-┌────────────┴─────────────┐
-│   AIVault.sol (ERC-4626)  │  On-chain
-│   • Verify ECDSA signature│
-│   • Execute rebalance     │
-│   • Post-check slippage   │
-│   ├── AaveV3Adapter       │
-│   └── CompoundV3Adapter   │
-└──────────────────────────┘
++--------------------------+
+|   OpenClaw Chat Interface |  "What's the APY?"
++------------+-------------+
+             | REST API
++------------+-------------+
+|   Python AI Agent         |  Off-chain
+|   - Read on-chain data    |
+|   - EMA rate smoothing    |
+|   - MCDM scoring (4 factors) |
+|   - EIP-712 sign decision |
++------------+-------------+
+             | Signed tx
++------------+-------------+
+|   AIVault.sol (ERC-4626)  |  On-chain
+|   - Verify ECDSA signature|
+|   - Execute rebalance     |
+|   - Post-check slippage   |
+|   +-- AaveV3Adapter       |
+|   \-- CompoundV3Adapter   |
++--------------------------+
   Fallback: Chainlink Automation (if agent offline >6h)
 ```
 
@@ -148,14 +148,14 @@ Rate jump guard: skip update if $|R_t - S_{t-1}| > 5\%$
 
 ---
 
-# 6. MCDM Scoring Model — The Core Innovation
+# 6. MCDM Scoring Model
 
 $$\text{Score}_i = 0.40 \cdot f_{\text{APY}} + 0.25 \cdot f_{\text{Risk}} + 0.20 \cdot f_{\text{Cost}} + 0.15 \cdot f_{\text{Stability}}$$
 
 | Factor | Formula | Why |
 |--------|---------|-----|
 | **APY** (40%) | $\text{APY} / 0.20$ | Primary yield signal |
-| **Risk** (25%) | $1 - \text{utilization}$ | High util → rate drop risk |
+| **Risk** (25%) | $1 - \text{utilization}$ | High util -> rate drop risk |
 | **Cost** (20%) | $1 - \text{gasCost} / 0.01$ | Gas efficiency |
 | **Stability** (15%) | $1 - |\Delta\text{TVL}| / 0.30$ | TVL stability |
 
@@ -194,12 +194,12 @@ $$\text{Score}_i = 0.40 \cdot f_{\text{APY}} + 0.25 \cdot f_{\text{Risk}} + 0.20
 Agent (off-chain):
   1. Build RebalanceParams{target, maxLoss, timestamp, nonce}
   2. Hash with EIP-712 domain (name, version, chainId, contract)
-  3. Sign with keeper private key → (v, r, s)
+  3. Sign with keeper private key -> (v, r, s)
 
 Vault (on-chain):
   1. Reconstruct digest from params
-  2. ecrecover(digest, v, r, s) → signer
-  3. Verify: signer == keeper ✓
+  2. ecrecover(digest, v, r, s) -> signer
+  3. Verify: signer == keeper [x]
   4. Check: nonce, timestamp freshness, cooldown
   5. Execute rebalance
 ```
@@ -236,27 +236,27 @@ Vault (on-chain):
 | Python scoring | 20 | Pytest |
 
 ### Invariants proven (zero violations):
-- ✓ Vault always solvent
-- ✓ Accounting: deposits − withdrawals = assets
-- ✓ Share conversions round-trip consistent
-- ✓ Share price non-decreasing
+- [x] Vault always solvent
+- [x] Accounting: deposits - withdrawals = assets
+- [x] Share conversions round-trip consistent
+- [x] Share price non-decreasing
 
 ---
 
 # 11. Invariant Testing: Why It Matters
 
-**Unit tests**: "Does function X work with input Y?" → specific scenarios
+**Unit tests**: "Does function X work with input Y?" -> specific scenarios
 
-**Invariant tests**: "Does property P hold under ANY sequence of calls?" → universal proof
+**Invariant tests**: "Does property P hold under ANY sequence of calls?" -> universal proof
 
 ```
 Foundry fuzzer generates random sequences:
-  deposit(actor=3, amount=47291) → OK
-  withdraw(actor=1, amount=8831) → OK  
-  redeem(actor=4, amount=12003) → OK
-  deposit(actor=0, amount=99102) → OK
+  deposit(actor=3, amount=47291) -> OK
+  withdraw(actor=1, amount=8831) -> OK  
+  redeem(actor=4, amount=12003) -> OK
+  deposit(actor=0, amount=99102) -> OK
   ...
-  After each sequence: check all 6 invariants ✓
+  After each sequence: check all 6 invariants [x]
 
   256 sequences × 50 calls = 12,800 calls per invariant
   6 invariants × 12,800 = 76,800 total calls
@@ -279,30 +279,30 @@ Bot:   "Score: Aave 0.62, Compound 0.58
 
 User:  "Show vault status"
 Bot:   "TVL: 50,000 USDC | Active: Aave V3 | Share price: 1.0071
-        Last rebalance: 3h ago | Agent: ONLINE ✓"
+        Last rebalance: 3h ago | Agent: ONLINE [x]"
 ```
 
-**Architecture:** Python FastAPI (port 8042) ← OpenClaw skill → Telegram/Discord
+**Architecture:** Python FastAPI (port 8042) <- OpenClaw skill -> Telegram/Discord
 
 ---
 
 # 13. Architecture — Three Layers
 
 ```
-┌───────────────────────────────────────────────────┐
-│             INTERFACE LAYER                        │
-│  OpenClaw + REST API (FastAPI, port 8042)          │
-│  Natural language ↔ structured vault queries       │
-├───────────────────────────────────────────────────┤
-│             INTELLIGENCE LAYER                     │
-│  Python Agent: MCDM scoring + EIP-712 signing      │
-│  Every hour: read → smooth → score → decide → act  │
-├───────────────────────────────────────────────────┤
-│             EXECUTION LAYER (On-Chain)             │
-│  AIVault.sol → StrategyManager → Adapters          │
-│  Verify signature → Execute → Slippage check       │
-│  Fallback: Chainlink Automation (after 6h)         │
-└───────────────────────────────────────────────────┘
++---------------------------------------------------+
+|             INTERFACE LAYER                        |
+|  OpenClaw + REST API (FastAPI, port 8042)          |
+|  Natural language <-> structured vault queries     |
++---------------------------------------------------+
+|             INTELLIGENCE LAYER                     |
+|  Python Agent: MCDM scoring + EIP-712 signing      |
+|  Every hour: read -> smooth -> score -> decide -> act  |
++---------------------------------------------------+
+|             EXECUTION LAYER (On-Chain)             |
+|  AIVault.sol -> StrategyManager -> Adapters        |
+|  Verify signature -> Execute -> Slippage check     |
+|  Fallback: Chainlink Automation (after 6h)         |
++---------------------------------------------------+
 ```
 
 ---
@@ -330,14 +330,14 @@ interface IProtocolAdapter {
 
 | Feature | Yearn | Beefy | Idle | Almanak | **Ours** |
 |---------|-------|-------|------|---------|----------|
-| Multi-factor scoring | ✗ | ✗ | ✗ | ✓ (closed) | **✓ (open)** |
-| Decision verifiability | ✓ | ✓ | ✓ | ✗ | **✓ (EIP-712)** |
-| Off-chain intelligence | ✗ | ✗ | ✗ | ✓ | **✓** |
-| Fallback mechanism | — | — | — | ✗ | **✓ (Chainlink)** |
-| Invariant-tested | Varies | ✗ | ✗ | ? | **✓ (76K calls)** |
-| Chat interface | ✗ | ✗ | ✗ | ✗ | **✓ (OpenClaw)** |
-| Upgradeable | Some | ✗ | Some | — | **✓ (UUPS)** |
-| Open source | ✓ | ✓ | ✓ | ✗ | **✓** |
+| Multi-factor scoring | No | No | No | Yes (closed) | **Yes (open)** |
+| Decision verifiability | Yes | Yes | Yes | No | **Yes (EIP-712)** |
+| Off-chain intelligence | No | No | No | Yes | **Yes** |
+| Fallback mechanism | -- | -- | -- | No | **Yes (Chainlink)** |
+| Invariant-tested | Varies | No | No | ? | **Yes (76K calls)** |
+| Chat interface | No | No | No | No | **Yes (OpenClaw)** |
+| Upgradeable | Some | No | Some | -- | **Yes (UUPS)** |
+| Open source | Yes | Yes | Yes | No | **Yes** |
 
 ---
 
@@ -358,7 +358,7 @@ interface IProtocolAdapter {
 
 ---
 
-# 17. Key Innovations
+# 17. Key Design Decisions
 
 ### 1. Hybrid Architecture
 Off-chain scoring power + on-chain trust guarantees
@@ -400,7 +400,7 @@ First yield vault with a natural language interface (OpenClaw)
 ## AI Yield Vault demonstrates that
 ## **agentic DeFi** — off-chain intelligence
 ## with on-chain verification —
-## is a viable and superior paradigm
+## is a viable paradigm
 ## for automated yield optimization.
 
 **67 tests | 76,800+ invariant calls | 0 violations**

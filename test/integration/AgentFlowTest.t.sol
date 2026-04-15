@@ -12,7 +12,7 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
-// ── Mocks (same pattern as unit tests) ──────────────────────────────
+// Mocks (same pattern as unit tests)
 
 contract FlowMockUSDC is ERC20 {
     constructor() ERC20("Mock USDC", "USDC") {}
@@ -46,11 +46,11 @@ contract FlowMockAdapter is IProtocolAdapter {
     function simulateInterest(address asset, uint256 amount) external { _balances[asset] += amount; }
 }
 
-// ── Integration Test ────────────────────────────────────────────────
+// Integration Test
 
 /// @title AgentFlowTest
 /// @notice End-to-end integration test simulating the full agent lifecycle:
-///         deposit → agent rebalance → yield accrual → second rebalance → withdraw
+///         deposit -> agent rebalance -> yield accrual -> second rebalance -> withdraw
 contract AgentFlowTest is Test {
     using ECDSA for bytes32;
     using MessageHashUtils for bytes32;
@@ -99,9 +99,9 @@ contract AgentFlowTest is Test {
         usdc.approve(address(vault), type(uint256).max);
     }
 
-    /// @notice Full lifecycle: deposit → rebalance to Aave → yield → rebalance to Compound → withdraw
+    /// @notice Full lifecycle: deposit -> rebalance to Aave -> yield -> rebalance to Compound -> withdraw
     function test_fullAgentLifecycle() public {
-        // ─── Step 1: Users deposit ──────────────────────────────────
+        // Step 1: Users deposit
         vm.prank(alice);
         uint256 aliceShares = vault.deposit(50_000e6, alice);
         vm.prank(bob);
@@ -110,7 +110,7 @@ contract AgentFlowTest is Test {
         assertEq(vault.totalAssets(), 70_000e6, "Total assets after deposits");
         assertFalse(vault.hasActiveStrategy(), "No strategy yet");
 
-        // ─── Step 2: Agent rebalances to Aave (adapter 0) ──────────
+        // Step 2: Agent rebalances to Aave (adapter 0)
         vm.warp(block.timestamp + 1 hours); // Past cooldown
 
         vm.prank(address(vault));
@@ -127,14 +127,14 @@ contract AgentFlowTest is Test {
         assertTrue(vault.hasActiveStrategy(), "Strategy should be active");
         assertEq(vault.activeAdapterIndex(), 0, "Should be on Aave");
 
-        // ─── Step 3: Simulate yield accrual (Aave earns interest) ──
+        // Step 3: Simulate yield accrual (Aave earns interest)
         aaveAdapter.simulateInterest(address(usdc), 500e6); // 500 USDC yield
 
         uint256 totalAfterYield = vault.totalAssets();
         assertGt(totalAfterYield, 70_000e6, "Total should increase with yield");
         console.log("Total assets after yield:", totalAfterYield);
 
-        // ─── Step 4: Agent rebalances to Compound (adapter 1) ──────
+        // Step 4: Agent rebalances to Compound (adapter 1)
         vm.warp(block.timestamp + 1 hours); // Past cooldown again
 
         vm.prank(address(vault));
@@ -154,7 +154,7 @@ contract AgentFlowTest is Test {
         uint256 totalAfterSwitch = vault.totalAssets();
         assertApproxEqRel(totalAfterSwitch, totalAfterYield, 0.01e18, "Assets preserved after switch");
 
-        // ─── Step 5: Users withdraw ─────────────────────────────────
+        // Step 5: Users withdraw
         uint256 aliceBalBefore = usdc.balanceOf(alice);
         vm.prank(alice);
         vault.redeem(aliceShares, alice, alice);
@@ -266,7 +266,7 @@ contract AgentFlowTest is Test {
         assertEq(usdc.balanceOf(alice), 100_000e6, "Alice got everything back");
     }
 
-    // ── Helper ──────────────────────────────────────────────────────
+    // Helper
 
     function _sign(IStrategyManager.RebalanceParams memory params)
         internal view returns (bytes memory)

@@ -9,7 +9,7 @@ echo "=========================================="
 echo "  AI Yield Vault — Deployment Setup"
 echo "=========================================="
 
-# ── Step 1: Install Docker (if not present) ──────────────────
+# Step 1: Install Docker (if not present)
 
 if ! command -v docker &> /dev/null; then
     echo "[1/6] Installing Docker..."
@@ -26,7 +26,7 @@ if ! command -v docker compose &> /dev/null; then
     apt-get update -qq && apt-get install -y -qq docker-compose-plugin
 fi
 
-# ── Step 2: Install Foundry ─────────────────────────────────
+# Step 2: Install Foundry
 
 if ! command -v forge &> /dev/null; then
     echo "[2/6] Installing Foundry..."
@@ -39,7 +39,7 @@ else
     echo "[2/6] Foundry already installed."
 fi
 
-# ── Step 3: Clone / copy project ────────────────────────────
+# Step 3: Clone / copy project
 
 PROJECT_DIR="$HOME/ai-yield-vault"
 
@@ -56,7 +56,7 @@ fi
 
 cd "$PROJECT_DIR"
 
-# ── Step 4: Install Solidity deps ───────────────────────────
+# Step 4: Install Solidity deps
 
 echo "[4/6] Installing Foundry dependencies..."
 if [ -f "foundry.toml" ]; then
@@ -67,7 +67,7 @@ else
     echo "WARNING: foundry.toml not found. Copy project files first!"
 fi
 
-# ── Step 5: Check .env ──────────────────────────────────────
+# Step 5: Check .env
 
 echo "[5/6] Checking .env configuration..."
 if [ ! -f ".env" ]; then
@@ -75,9 +75,9 @@ if [ ! -f ".env" ]; then
         cp .env.example .env
         echo "Created .env from .env.example"
         echo ""
-        echo "╔════════════════════════════════════════════╗"
-        echo "║  EDIT .env WITH YOUR KEYS BEFORE DEPLOYING ║"
-        echo "╚════════════════════════════════════════════╝"
+        echo "============================================"
+        echo "  EDIT .env WITH YOUR KEYS BEFORE DEPLOYING"
+        echo "============================================"
         echo ""
         echo "  nano $PROJECT_DIR/.env"
         echo ""
@@ -86,7 +86,7 @@ else
     echo ".env exists."
 fi
 
-# ── Step 6: Summary ─────────────────────────────────────────
+# Step 6: Summary
 
 echo "[6/6] Setup complete!"
 echo ""

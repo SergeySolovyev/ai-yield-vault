@@ -1,30 +1,30 @@
 \documentclass[12pt]{article}
 
-% ── Geometry ──────────────────────────────────────────────────────────────────
+%Geometry
 \usepackage[a4paper, margin=2.5cm]{geometry}
 
-% ── Fonts & encoding ─────────────────────────────────────────────────────────
+%Fonts & encoding
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{lmodern}
 \usepackage{microtype}
 
-% ── Math ──────────────────────────────────────────────────────────────────────
+%Math
 \usepackage{amsmath, amssymb, mathtools}
 
-% ── Tables ────────────────────────────────────────────────────────────────────
+%Tables
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{multirow}
 \usepackage{tabularx}
 
-% ── Graphics ──────────────────────────────────────────────────────────────────
+%Graphics
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta, positioning, shapes.geometric, calc, fit}
 
-% ── Code listings ─────────────────────────────────────────────────────────────
+%Code listings
 \usepackage{listings}
 \lstset{
   basicstyle=\ttfamily\small,
@@ -46,22 +46,22 @@
   string=[b]",
 }
 
-% ── Hyperlinks ────────────────────────────────────────────────────────────────
+%Hyperlinks
 \usepackage[colorlinks=true, linkcolor=blue!60!black, citecolor=blue!60!black, urlcolor=blue!70!black]{hyperref}
 
-% ── Bibliography ──────────────────────────────────────────────────────────────
+%Bibliography
 \usepackage[numbers,sort&compress]{natbib}
 
-% ── Misc ──────────────────────────────────────────────────────────────────────
+%Misc
 \usepackage{enumitem}
 \usepackage{xcolor}
 \usepackage{caption}
 \captionsetup{font=small, labelfont=bf}
 
-% ══════════════════════════════════════════════════════════════════════════════
+% =============================================================================
 \begin{document}
 
-% ── Title block ───────────────────────────────────────────────────────────────
+%Title block
 \begin{center}
   {\LARGE\bfseries AI-Managed ERC-4626 Yield Vault\\[4pt]
    with Multi-Criteria Decision Making:\\[4pt]
@@ -89,7 +89,7 @@
 
 \bigskip
 
-% ── Abstract ──────────────────────────────────────────────────────────────────
+%Abstract
 \begin{center}
   \textbf{Abstract}
 \end{center}
@@ -104,7 +104,7 @@ We deploy and validate the system on Ethereum Sepolia testnet with USDC as the u
 \noindent\textbf{Keywords:} DeFi, yield optimisation, ERC-4626, EIP-712, multi-criteria decision making, smart contracts, Ethereum, Solidity, agent-based systems
 \end{quote}
 
-% ══════════════════════════════════════════════════════════════════════════════
+% =============================================================================
 \section{Introduction}
 
 \subsection{Decentralised Finance: A Primer}
@@ -209,7 +209,7 @@ Our contributions are:
   \item \textbf{Natural language interface}: integration with OpenClaw chat framework enables conversational interaction with the vault (Section~\ref{sec:openclaw}).
 \end{enumerate}
 
-% ══════════════════════════════════════════════════════════════════════════════
+% =============================================================================
 \section{Background}
 
 \subsection{ERC-4626: Tokenised Vault Standard}
@@ -285,7 +285,7 @@ Properties:
 \end{itemize}
 We use $\alpha = 0.3$, meaning each new rate observation has 30\% influence on the smoothed value.
 
-% ══════════════════════════════════════════════════════════════════════════════
+% =============================================================================
 \section{System Architecture}
 
 \subsection{Overview}
@@ -393,7 +393,7 @@ Deposits, withdrawals, and rebalances follow well-defined paths:
 
 The vault maintains an \emph{idle buffer} ($b = 2\%$ of TVL) to serve small withdrawals without touching the protocol, reducing gas costs for users.
 
-% ══════════════════════════════════════════════════════════════════════════════
+% =============================================================================
 \section{Mathematical Foundations}
 
 \subsection{ERC-4626 Inflation Attack and Mitigation}
@@ -595,7 +595,7 @@ The fallback correctly holds---the benefit over one day does not justify the gas
 \end{align}
 The high-water mark (HWM) ensures that performance fees are only charged on \emph{new} profits, not on recovery from drawdowns---the industry standard for hedge funds, but rare in DeFi vaults.
 
-% ══════════════════════════════════════════════════════════════════════════════
+% =============================================================================
 \section{Security Analysis}
 
 \subsection{Threat Model}
@@ -668,7 +668,7 @@ setKeeper / setFees             & ---          & ---          & --- & $\checkmar
 \end{tabular}
 \end{table}
 
-% ══════════════════════════════════════════════════════════════════════════════
+% =============================================================================
 \section{Testing and Formal Verification}
 \label{sec:testing}
 
@@ -768,7 +768,7 @@ Price          & share price $\geq 0$                                        & 1
 
 The \textbf{zero violation rate} across 76{,}800 random calls provides high confidence in the vault's safety properties.
 
-% ══════════════════════════════════════════════════════════════════════════════
+% =============================================================================
 \section{Implementation Details}
 
 \subsection{Technology Stack}
@@ -842,7 +842,7 @@ OpenClaw maps natural language queries to these endpoints:
 
 This is, to our knowledge, the first yield vault with a conversational AI interface.
 
-% ══════════════════════════════════════════════════════════════════════════════
+% =============================================================================
 \section{Results and Discussion}
 
 \subsection{Test Results Summary}
@@ -927,7 +927,7 @@ Several limitations should be noted:
 While ML-based yield prediction (LSTM, XGBoost) could improve timing decisions, our rule-based MCDM approach offers key advantages: full interpretability, deterministic behaviour, and no training data requirement.
 The hybrid architecture is designed to accommodate ML models as a future enhancement without changing the on-chain verification layer.
 
-% ══════════════════════════════════════════════════════════════════════════════
+% =============================================================================
 \section{Future Work}
 
 \begin{enumerate}[nosep]
@@ -939,7 +939,7 @@ The hybrid architecture is designed to accommodate ML models as a future enhance
   \item \textbf{Risk scoring oracle}: on-chain publication of scoring data for composability.
 \end{enumerate}
 
-% ══════════════════════════════════════════════════════════════════════════════
+% =============================================================================
 \section{Conclusion}
 
 We have presented AI Yield Vault, a hybrid off-chain/on-chain system for automated DeFi yield optimisation.
@@ -957,7 +957,7 @@ The system demonstrates that the ``agentic DeFi'' paradigm---off-chain intellige
 \medskip
 \noindent\textbf{67 tests $\mid$ 76{,}800+ invariant calls $\mid$ 0 violations $\mid$ 4-factor MCDM $\mid$ EIP-712 signed $\mid$ Chainlink fallback $\mid$ OpenClaw chat}
 
-% ══════════════════════════════════════════════════════════════════════════════
+% =============================================================================
 
 \section*{Code Availability}
 
@@ -965,7 +965,7 @@ All source code, smart contracts, Python agent, tests, and deployment scripts ar
 
 \bigskip
 
-% ── References ────────────────────────────────────────────────────────────────
+%References
 \begingroup
 \renewcommand{\section}[2]{}  % suppress natbib's \section*{References}
 \section*{References}
@@ -1049,7 +1049,7 @@ Almanak.
 \end{thebibliography}
 \endgroup
 
-% ══════════════════════════════════════════════════════════════════════════════
+% =============================================================================
 \appendix
 
 \section{Contract Addresses (Sepolia Testnet)}

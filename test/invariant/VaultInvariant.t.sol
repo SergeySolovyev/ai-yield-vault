@@ -200,7 +200,7 @@ contract VaultInvariantTest is Test {
         targetContract(address(handler));
     }
 
-    // ── Invariant: totalAssets >= 0 ──────────────────────────────────
+    // Invariant: totalAssets >= 0
 
     function invariant_totalAssetsNonNegative() public view {
         // totalAssets is uint256, so it can't be negative, but we verify it's callable
@@ -209,7 +209,7 @@ contract VaultInvariantTest is Test {
         assertTrue(total >= 0, "totalAssets should never revert or underflow");
     }
 
-    // ── Invariant: totalSupply consistency ───────────────────────────
+    // Invariant: totalSupply consistency
 
     function invariant_totalSupplyConsistent() public view {
         // If there are no shares, there should be no assets tracked (or only dust)
@@ -229,7 +229,7 @@ contract VaultInvariantTest is Test {
         }
     }
 
-    // ── Invariant: share price non-decreasing (no fees in play) ─────
+    // Invariant: share price non-decreasing (no fees in play)
 
     function invariant_sharePriceNonDecreasing() public view {
         uint256 supply = vault.totalSupply();
@@ -243,7 +243,7 @@ contract VaultInvariantTest is Test {
         assertTrue(pricePerShare >= 0, "Share price should be non-negative");
     }
 
-    // ── Invariant: vault solvency ───────────────────────────────────
+    // Invariant: vault solvency
 
     function invariant_vaultSolvent() public view {
         // Total assets should always be >= total redeemable value
@@ -264,7 +264,7 @@ contract VaultInvariantTest is Test {
         );
     }
 
-    // ── Invariant: deposit/withdraw accounting ──────────────────────
+    // Invariant: deposit/withdraw accounting
 
     function invariant_accountingBalances() public view {
         // Total USDC in system = vault idle + adapter balances + user balances
@@ -286,7 +286,7 @@ contract VaultInvariantTest is Test {
         }
     }
 
-    // ── Invariant: convertToShares and convertToAssets are consistent ─
+    // Invariant: convertToShares and convertToAssets are consistent
 
     function invariant_conversionConsistency() public view {
         // Converting assets to shares and back should be approximately equal

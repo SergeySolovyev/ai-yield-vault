@@ -81,13 +81,13 @@ contract RateMathTest is Test {
     }
 
     function test_emaSmooth_fullWeightOnNew() public pure {
-        // alpha = 10000 (100%) → result = current
+        // alpha = 10000 (100%) -> result = current
         uint256 result = RateMath.emaSmooth(5e16, 3e16, 10000);
         assertEq(result, 5e16, "100% alpha should return current rate");
     }
 
     function test_emaSmooth_fullWeightOnOld() public pure {
-        // alpha = 0 (0%) → result = previous
+        // alpha = 0 (0%) -> result = previous
         uint256 result = RateMath.emaSmooth(5e16, 3e16, 0);
         assertEq(result, 3e16, "0% alpha should return previous rate");
     }

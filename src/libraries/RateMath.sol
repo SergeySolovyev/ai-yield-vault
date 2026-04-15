@@ -9,8 +9,8 @@ pragma solidity ^0.8.24;
 ///         - Annual rate scaled by 1e18 (e.g., 5% = 5e16, 0.5% = 5e15)
 ///
 /// @dev Formulas documented in the litepaper:
-///      - Aave normalization: liquidityRate (RAY=1e27) → annual rate (1e18)
-///      - Compound normalization: perSecondRate (1e18) × SECONDS_PER_YEAR → annual rate
+///      - Aave normalization: liquidityRate (RAY=1e27) -> annual rate (1e18)
+///      - Compound normalization: perSecondRate (1e18) * SECONDS_PER_YEAR -> annual rate
 ///      - EMA: smoothed = alpha × current + (1 - alpha) × previous
 library RateMath {
     /// @notice One RAY unit used by Aave V3 (1e27)

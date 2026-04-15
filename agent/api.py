@@ -38,7 +38,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# ── Lazy web3 initialization ─────────────────────────────────────────
+# Lazy web3 initialization
 
 _w3: Web3 | None = None
 _reader: DataReader | None = None
@@ -76,7 +76,7 @@ def _get_strategy_manager():
     )
 
 
-# ── Response Models ──────────────────────────────────────────────────
+# Response Models
 
 
 class VaultStatus(BaseModel):
@@ -119,7 +119,7 @@ class RebalanceResult(BaseModel):
     tx_hash: str | None = None
 
 
-# ── Endpoints ────────────────────────────────────────────────────────
+# Endpoints
 
 
 @app.get("/health")
@@ -320,7 +320,7 @@ def trigger_rebalance(dry_run: bool = True):
         raise HTTPException(500, f"Rebalance failed: {e}")
 
 
-# ── Entry point ──────────────────────────────────────────────────────
+# Entry point
 
 if __name__ == "__main__":
     import uvicorn

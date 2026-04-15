@@ -27,7 +27,7 @@ contract StrategyManager is IStrategyManager, Ownable {
     /// @notice Maximum allowed APY jump per observation (in bps) — rate manipulation guard
     uint256 public maxRateJumpBps;
 
-    /// @notice Smoothed APY per adapter (adapter index → smoothed rate in 1e18)
+    /// @notice Smoothed APY per adapter (adapter index -> smoothed rate in 1e18)
     mapping(uint256 => uint256) public smoothedRates;
 
     /// @notice Estimated gas cost of a rebalance operation (in wei)

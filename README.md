@@ -6,12 +6,12 @@ An ERC-4626 tokenized vault managed by an off-chain AI agent that autonomously r
 
 ```
 Off-chain Agent (Python)          On-chain (Solidity)
-─────────────────────────         ─────────────────────
-Read rates, utilization    ──►    AIVault.sol (ERC-4626 + UUPS)
-Multi-factor MCDM scoring         ├── AaveV3Adapter
-EIP-712 sign decision      ──►    ├── CompoundV3Adapter
-Submit rebalance tx                └── StrategyManager
-                                        ▲
+-------------------------         ---------------------
+Read rates, utilization    -->    AIVault.sol (ERC-4626 + UUPS)
+Multi-factor MCDM scoring         +-- AaveV3Adapter
+EIP-712 sign decision      -->    +-- CompoundV3Adapter
+Submit rebalance tx                \-- StrategyManager
+                                        ^
                               Chainlink Automation (fallback)
 ```
 
@@ -65,43 +65,43 @@ python main.py             # Continuous loop (1hr interval)
 
 ```
 src/
-├── AIVault.sol                 # Core vault (ERC-4626 + UUPS + agent rebalance)
-├── StrategyManager.sol         # Decision engine + adapter registry
-├── adapters/
-│   ├── AaveV3Adapter.sol       # Aave V3 protocol adapter
-│   └── CompoundV3Adapter.sol   # Compound V3 protocol adapter
-├── interfaces/
-│   ├── IProtocolAdapter.sol    # Universal adapter interface
-│   ├── IStrategyManager.sol    # Strategy manager interface
-│   ├── IAaveV3Pool.sol         # Minimal Aave V3 interface
-│   └── IComet.sol              # Minimal Compound V3 interface
-└── libraries/
-    ├── RateMath.sol            # APY normalization + EMA
-    └── Constants.sol           # Sepolia addresses + defaults
++-- AIVault.sol                 # Core vault (ERC-4626 + UUPS + agent rebalance)
++-- StrategyManager.sol         # Decision engine + adapter registry
++-- adapters/
+|   +-- AaveV3Adapter.sol       # Aave V3 protocol adapter
+|   \-- CompoundV3Adapter.sol   # Compound V3 protocol adapter
++-- interfaces/
+|   +-- IProtocolAdapter.sol    # Universal adapter interface
+|   +-- IStrategyManager.sol    # Strategy manager interface
+|   +-- IAaveV3Pool.sol         # Minimal Aave V3 interface
+|   \-- IComet.sol              # Minimal Compound V3 interface
+\-- libraries/
+    +-- RateMath.sol            # APY normalization + EMA
+    \-- Constants.sol           # Sepolia addresses + defaults
 
 test/
-├── unit/
-│   ├── RateMath.t.sol          # 20 tests (normalization, EMA, fuzz)
-│   └── AIVault.t.sol           # 17 tests (deposit, withdraw, rebalance, inflation)
-├── integration/
-│   └── AgentFlowTest.t.sol     # 4 tests (full lifecycle, nonce replay, emergency)
-└── invariant/
-    └── VaultInvariant.t.sol    # 6 invariants (solvency, accounting, conversions)
++-- unit/
+|   +-- RateMath.t.sol          # 20 tests (normalization, EMA, fuzz)
+|   \-- AIVault.t.sol           # 17 tests (deposit, withdraw, rebalance, inflation)
++-- integration/
+|   \-- AgentFlowTest.t.sol     # 4 tests (full lifecycle, nonce replay, emergency)
+\-- invariant/
+    \-- VaultInvariant.t.sol    # 6 invariants (solvency, accounting, conversions)
 
 agent/
-├── main.py                     # Agent loop: read → score → sign → send
-├── scoring.py                  # MCDM scoring engine
-├── data_reader.py              # On-chain data reader (web3.py)
-├── signer.py                   # EIP-712 typed data signer
-├── config.py                   # Configuration + ABI loading
-└── tests/
-    └── test_scoring.py         # 20 scoring model tests
++-- main.py                     # Agent loop: read -> score -> sign -> send
++-- scoring.py                  # MCDM scoring engine
++-- data_reader.py              # On-chain data reader (web3.py)
++-- signer.py                   # EIP-712 typed data signer
++-- config.py                   # Configuration + ABI loading
+\-- tests/
+    \-- test_scoring.py         # 20 scoring model tests
 
 script/
-└── Deploy.s.sol                # Foundry deployment script
+\-- Deploy.s.sol                # Foundry deployment script
 
 docs/
-└── litepaper.md                # Academic litepaper with formulas
+\-- litepaper.md                # Academic litepaper with formulas
 ```
 
 ## Test Results

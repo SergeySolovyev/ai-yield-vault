@@ -21,7 +21,7 @@ DeFi lending markets exhibit significant APY volatility. Aave V3 and Compound V3
 | Protocol | Architecture | Decision Logic | Verifiability |
 |----------|-------------|----------------|---------------|
 | Yearn V3 | On-chain strategies | Strategist-coded allocation | On-chain (rigid) |
-| Beefy Finance | On-chain auto-compound | Harvest → compound loop | On-chain (simple) |
+| Beefy Finance | On-chain auto-compound | Harvest -> compound loop | On-chain (simple) |
 | Idle Finance | On-chain | Best-rate-wins threshold | On-chain (APY only) |
 | Almanak | Off-chain agent | ML-based (closed source) | Opaque |
 | **AI Yield Vault** | **Hybrid (agent + on-chain)** | **Multi-factor MCDM scoring** | **EIP-712 signed, on-chain verifiable** |
@@ -45,41 +45,41 @@ AI Yield Vault bridges this gap with a **hybrid architecture**:
 ### 2.1 System Overview
 
 ```
-┌────────────────────────────┐
-│    AI Agent (Python)       │  Off-chain
-│                            │
-│  1. Read on-chain data     │
-│     - APY, utilization     │
-│     - TVL, gas price       │
-│  2. EMA rate smoothing     │
-│  3. MCDM scoring           │
-│  4. Decision: rebalance    │
-│     or hold                │
-│  5. EIP-712 sign           │
-│  6. Submit rebalance tx    │
-└───────────┬────────────────┘
-            │ signed RebalanceParams
-            ▼
-┌────────────────────────────┐
-│   AIVault.sol              │  On-chain
-│   (ERC-4626 + UUPS)       │
-│                            │
-│  - Verify ECDSA signature  │
-│  - Check cooldown/nonce    │
-│  - Execute rebalance       │
-│  - Post-check slippage     │
-│  - Emit Rebalanced event   │
-└───────────┬────────────────┘
-            │
-    ┌───────┴───────┐
-    ▼               ▼
-┌──────────┐  ┌──────────────┐
-│ Aave V3  │  │ Compound V3  │
-│ Adapter  │  │ Adapter      │
-└──────────┘  └──────────────┘
++----------------------------+
+|    AI Agent (Python)       |  Off-chain
+|                            |
+|  1. Read on-chain data     |
+|     - APY, utilization     |
+|     - TVL, gas price       |
+|  2. EMA rate smoothing     |
+|  3. MCDM scoring           |
+|  4. Decision: rebalance    |
+|     or hold                |
+|  5. EIP-712 sign           |
+|  6. Submit rebalance tx    |
++-----------+----------------+
+            | signed RebalanceParams
+            v
++----------------------------+
+|   AIVault.sol              |  On-chain
+|   (ERC-4626 + UUPS)       |
+|                            |
+|  - Verify ECDSA signature  |
+|  - Check cooldown/nonce    |
+|  - Execute rebalance       |
+|  - Post-check slippage     |
+|  - Emit Rebalanced event   |
++-----------+----------------+
+            |
+    +-------+-------+
+    v               v
++----------+  +--------------+
+| Aave V3  |  | Compound V3  |
+| Adapter  |  | Adapter      |
++----------+  +--------------+
 
 Fallback path:
-  Chainlink Automation → checkUpkeep → performUpkeep
+  Chainlink Automation -> checkUpkeep -> performUpkeep
   (activates only after agentTimeout = 6 hours)
 ```
 
@@ -152,9 +152,9 @@ $$\text{Score}_i = w_1 \cdot f_{\text{APY}}(i) + w_2 \cdot f_{\text{Risk}}(i) + 
 | Factor | Weight | Formula | Rationale |
 |--------|--------|---------|-----------|
 | APY | $w_1 = 0.40$ | $\text{normalize}(\text{smoothedAPY}, 0, 0.20)$ | Primary yield signal |
-| Risk | $w_2 = 0.25$ | $1 - \text{normalize}(\text{utilization}, 0, 1)$ | High utilization → rate drop risk |
+| Risk | $w_2 = 0.25$ | $1 - \text{normalize}(\text{utilization}, 0, 1)$ | High utilization -> rate drop risk |
 | Cost | $w_3 = 0.20$ | $1 - \text{normalize}(\text{gasCost}_{ETH}, 0, 0.01)$ | Gas efficiency of switching |
-| Stability | $w_4 = 0.15$ | $1 - \text{normalize}(|\Delta\text{TVL}|, 0, 0.30)$ | Large TVL swings → instability |
+| Stability | $w_4 = 0.15$ | $1 - \text{normalize}(|\Delta\text{TVL}|, 0, 0.30)$ | Large TVL swings -> instability |
 
 The agent rebalances when:
 
@@ -276,9 +276,9 @@ With 76,800+ random function calls and zero violations:
 - **Underlying asset**: USDC (Aave faucet variant)
 
 ### 6.2 Deployment Order
-1. AaveV3Adapter → CompoundV3Adapter
+1. AaveV3Adapter -> CompoundV3Adapter
 2. StrategyManager (registers adapters)
-3. AIVault implementation → ERC1967Proxy (UUPS)
+3. AIVault implementation -> ERC1967Proxy (UUPS)
 4. Transfer adapter ownership to vault
 5. Register Chainlink Automation upkeep
 

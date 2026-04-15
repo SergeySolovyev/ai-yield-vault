@@ -60,16 +60,16 @@ Figure 1 illustrates a typical scenario where Aave and Compound supply rates cro
 
 ```
 APY (%)
-  8 │        ╱╲        Compound
-    │       ╱  ╲      ╱
-  6 │──────╱────╲────╱──────── Optimal strategy
-    │     ╱      ╲  ╱         follows the higher rate
-  4 │────╱────────╲╱───────── 
-    │   ╱    Aave  ╲
-  2 │──╱────────────╲──────── 
-    │ ╱              ╲
-  0 └──────────────────────── Time
-      t₁    t₂    t₃    t₄
+  8 |        /\        Compound
+    |       /  \      /
+  6 |------/----\----/-------- Optimal strategy
+    |     /      \  /         follows the higher rate
+  4 |----/--------\/--------- 
+    |   /    Aave  \
+  2 |--/------------\-------- 
+    | /              \
+  0 +------------------------ Time
+      t1    t2    t3    t4
 ```
 
 A rational depositor should always hold funds in the protocol offering the highest risk-adjusted return. However, **manual optimization is impractical** because:
@@ -132,11 +132,11 @@ $$a = \left\lfloor \frac{s \cdot (A + 1)}{S + 10^d} \right\rfloor$$
 Smart contracts on Ethereum are **immutable** once deployed. The Universal Upgradeable Proxy Standard (UUPS, ERC-1967) [5] enables upgradeability by separating **storage** (in a proxy contract) from **logic** (in an implementation contract):
 
 ```
-User → Proxy (storage) →delegatecall→ Implementation (logic)
-         │                                    │
-         │  Upgrade: proxy points to          │
-         │  new implementation                │
-         └────────────────────────────────────┘
+User -> Proxy (storage) -delegatecall-> Implementation (logic)
+         |                                    |
+         |  Upgrade: proxy points to          |
+         |  new implementation                |
+         +------------------------------------+
 ```
 
 This allows fixing bugs, adding features, or upgrading dependencies without migrating user funds.
@@ -184,33 +184,33 @@ We use $\alpha = 0.3$, meaning each new rate observation has 30% influence on th
 The system consists of three layers:
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                  INTERFACE LAYER                         │
-│  OpenClaw + REST API → Natural language interaction      │
-│  "What's the current APY?" → JSON → formatted response  │
-└───────────────────────┬─────────────────────────────────┘
-                        │ HTTP (port 8042)
-┌───────────────────────┴─────────────────────────────────┐
-│                  INTELLIGENCE LAYER                      │
-│  Python Agent: data_reader → scoring → signer → main    │
-│  - Read on-chain data every hour                         │
-│  - EMA smooth rates                                      │
-│  - MCDM score (4 factors, weighted)                      │
-│  - EIP-712 sign if rebalance needed                      │
-│  - Submit transaction                                    │
-└───────────────────────┬─────────────────────────────────┘
-                        │ Ethereum RPC + signed tx
-┌───────────────────────┴─────────────────────────────────┐
-│                  EXECUTION LAYER (On-Chain)               │
-│  AIVault.sol → StrategyManager → Protocol Adapters       │
-│  - Verify signature from keeper                           │
-│  - Check cooldown, nonce, freshness                       │
-│  - Execute rebalance via adapters                         │
-│  - Post-check slippage                                    │
-│  - Emit Rebalanced event                                  │
-│                                                           │
-│  Fallback: Chainlink Automation (if agent offline >6h)    │
-└─────────────────────────────────────────────────────────┘
++---------------------------------------------------------+
+|                  INTERFACE LAYER                         |
+|  OpenClaw + REST API -> Natural language interaction     |
+|  "What's the current APY?" -> JSON -> formatted response|
++---------------------------+-----------------------------+
+                            | HTTP (port 8042)
++---------------------------+-----------------------------+
+|                  INTELLIGENCE LAYER                      |
+|  Python Agent: data_reader -> scoring -> signer -> main |
+|  - Read on-chain data every hour                        |
+|  - EMA smooth rates                                     |
+|  - MCDM score (4 factors, weighted)                     |
+|  - EIP-712 sign if rebalance needed                     |
+|  - Submit transaction                                   |
++---------------------------+-----------------------------+
+                            | Ethereum RPC + signed tx
++---------------------------+-----------------------------+
+|                  EXECUTION LAYER (On-Chain)              |
+|  AIVault.sol -> StrategyManager -> Protocol Adapters    |
+|  - Verify signature from keeper                         |
+|  - Check cooldown, nonce, freshness                     |
+|  - Execute rebalance via adapters                       |
+|  - Post-check slippage                                  |
+|  - Emit Rebalanced event                                |
+|                                                         |
+|  Fallback: Chainlink Automation (if agent offline >6h)  |
++---------------------------------------------------------+
 ```
 
 ### 3.2 Adapter Pattern (Strategy Design Pattern)
@@ -243,28 +243,28 @@ Each protocol adapter implements this interface with protocol-specific logic:
 
 ```
                     Initializable
-                         │
-              ┌──────────┼──────────┐
-              ▼          ▼          ▼
+                         |
+              +----------+----------+
+              v          v          v
     ERC4626Upgradeable  UUPS    OwnableUpgradeable
-              │      Upgradeable     │
-              └──────┐  │  ┌────────┘
-                     ▼  ▼  ▼
+              |      Upgradeable     |
+              +------+  |  +--------+
+                     v  v  v
               PausableUpgradeable
-                       │
-                       ▼
+                       |
+                       v
                  ReentrancyGuard
-                       │
-                       ▼
+                       |
+                       v
                    AIVault
 ```
 
 ### 3.4 Fund Flow
 
 ```
-Deposit:  User ──USDC──→ Vault (idle) ──deploy──→ Active Adapter ──supply──→ Protocol
-Withdraw: User ←─USDC──← Vault (idle) ←─unwind──← Active Adapter ←─withdraw← Protocol
-Rebalance: Adapter_A ──withdraw──→ Vault (idle) ──supply──→ Adapter_B
+Deposit:   User --USDC--> Vault (idle) --deploy--> Active Adapter --supply--> Protocol
+Withdraw:  User <-USDC--- Vault (idle) <-unwind--- Active Adapter <-withdraw- Protocol
+Rebalance: Adapter_A --withdraw--> Vault (idle) --supply--> Adapter_B
 ```
 
 The vault maintains an **idle buffer** ($b = 2\%$ of TVL) to serve small withdrawals without touching the protocol, reducing gas costs for users.
@@ -303,7 +303,7 @@ Different protocols represent interest rates in incompatible formats. We normali
 
 $$\text{APY}_{1e18} = \frac{\text{currentLiquidityRate}_{\text{RAY}}}{10^9}$$
 
-*Example*: A 5% APY in Aave = $5 \times 10^{25}$ RAY → $5 \times 10^{16}$ in 1e18 scale.
+*Example*: A 5% APY in Aave = $5 \times 10^{25}$ RAY -> $5 \times 10^{16}$ in 1e18 scale.
 
 **Compound V3**: Rates are per-second and must be annualized:
 
@@ -311,7 +311,7 @@ $$\text{APY}_{1e18} = r_{\text{sec}} \times T_{\text{year}}$$
 
 where $T_{\text{year}} = 365.25 \times 24 \times 3600 = 31{,}557{,}600$ seconds.
 
-*Example*: A per-second rate of $1.585 \times 10^{9}$ → $1.585 \times 10^{9} \times 3.156 \times 10^{7} \approx 5 \times 10^{16}$ (5% APY).
+*Example*: A per-second rate of $1.585 \times 10^{9}$ -> $1.585 \times 10^{9} \times 3.156 \times 10^{7} \approx 5 \times 10^{16}$ (5% APY).
 
 ### 4.3 EMA Rate Smoothing
 
@@ -463,12 +463,12 @@ We consider the following adversaries:
 
 | Function | Any User | Keeper | Chainlink | Owner |
 |----------|----------|--------|-----------|-------|
-| deposit/withdraw/redeem | ✓ | ✓ | — | ✓ |
-| rebalance (signed) | ✓* | ✓* | — | ✓* |
-| performUpkeep | — | — | ✓ | — |
-| emergencyWithdrawAll | — | — | — | ✓ |
-| pause/unpause | — | — | — | ✓ |
-| setKeeper/setFees | — | — | — | ✓ |
+| deposit/withdraw/redeem | Yes | Yes | - | Yes |
+| rebalance (signed) | Yes* | Yes* | - | Yes* |
+| performUpkeep | - | - | Yes | - |
+| emergencyWithdrawAll | - | - | - | Yes |
+| pause/unpause | - | - | - | Yes |
+| setKeeper/setFees | - | - | - | Yes |
 
 *\* Anyone can submit, but the signature must be from the keeper.*
 
@@ -481,16 +481,16 @@ We consider the following adversaries:
 We employ a four-level testing pyramid:
 
 ```
-         ╱╲
-        ╱  ╲  Invariant (stateful fuzzing)
-       ╱ 6  ╲  "Always true under ANY sequence"
-      ╱──────╲
-     ╱ Integ. ╲  Integration (end-to-end)
-    ╱   4 tests╲  "Full lifecycle works"
-   ╱────────────╲
-  ╱  Unit Tests  ╲  Unit (focused)
- ╱  37 tests+fuzz ╲  "Each function correct"
-╱────────────────────╲
+         /\
+        /  \  Invariant (stateful fuzzing)
+       / 6  \  "Always true under ANY sequence"
+      /------\
+     / Integ. \  Integration (end-to-end)
+    /  4 tests \  "Full lifecycle works"
+   /------------\
+  /  Unit Tests  \  Unit (focused)
+ / 37 tests+fuzz  \  "Each function correct"
+/--------------------\
     Python Tests       Scoring model (20 tests)
 ```
 
@@ -505,7 +505,7 @@ We employ a four-level testing pyramid:
 | `test_rebalance_expiredSignature` | Rejects stale signatures (>5 min) |
 | `test_rebalance_cooldown` | Enforces 1hr cooldown between rebalances |
 | `test_inflationAttack_mitigated` | Virtual shares prevent donation attack |
-| `testFuzz_depositWithdraw_roundTrip` | Fuzz: deposit → redeem ≈ original (1000 runs) |
+| `testFuzz_depositWithdraw_roundTrip` | Fuzz: deposit -> redeem ~ original (1000 runs) |
 | `test_risk_can_override_apy` | Python: risk factor overrides higher APY |
 
 ### 6.3 Integration Tests (4 tests)
@@ -513,12 +513,12 @@ We employ a four-level testing pyramid:
 The `test_fullAgentLifecycle` test simulates the complete user journey:
 
 ```
-Alice deposits 50,000 USDC → Bob deposits 20,000 USDC
-  → Agent rebalances to Aave (signed, verified)
-    → 500 USDC yield accrues
-      → Agent rebalances to Compound (signed, nonce=1)
-        → Alice redeems: receives 50,357 USDC (+0.71% profit)
-        → Bob redeems: receives 20,142 USDC (+0.71% profit)
+Alice deposits 50,000 USDC -> Bob deposits 20,000 USDC
+  -> Agent rebalances to Aave (signed, verified)
+    -> 500 USDC yield accrues
+      -> Agent rebalances to Compound (signed, nonce=1)
+        -> Alice redeems: receives 50,357 USDC (+0.71% profit)
+        -> Bob redeems: receives 20,142 USDC (+0.71% profit)
 ```
 
 This proves correct yield distribution, nonce progression, and adapter switching.
@@ -595,9 +595,9 @@ Our MCDM model correctly identifies scenarios where naive APY comparison fails:
 
 | Scenario | APY-only decision | MCDM decision | Better? |
 |----------|-------------------|---------------|---------|
-| Aave 6%, util 95% vs Compound 5%, util 30% | Aave (wrong) | Compound ✓ | Yes — risk-aware |
-| Aave 5.2% vs Compound 5.0%, gas = $50 | Switch (wrong) | Hold ✓ | Yes — cost-aware |
-| Aave 5%, stable vs Compound 6%, TVL -20% | Compound (risky) | Hold ✓ | Yes — stability-aware |
+| Aave 6%, util 95% vs Compound 5%, util 30% | Aave (wrong) | Compound (correct) | Yes -- risk-aware |
+| Aave 5.2% vs Compound 5.0%, gas = $50 | Switch (wrong) | Hold (correct) | Yes -- cost-aware |
+| Aave 5%, stable vs Compound 6%, TVL -20% | Compound (risky) | Hold (correct) | Yes -- stability-aware |
 
 ### 8.3 Comparison with Existing Systems
 
